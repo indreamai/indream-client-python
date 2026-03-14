@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "indream-client"
+version = "0.1.1"
+description = "Official Python client for Indream Open API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Indream" }]
+dependencies = [
+  "httpx>=0.27.0,<1.0.0",
+  "pydantic>=2.9.0,<3.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/indreamai/indream-client-python"
+Repository = "https://github.com/indreamai/indream-client-python"
+Issues = "https://github.com/indreamai/indream-client-python/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0,<9.0.0",
+  "ruff>=0.8.0,<0.10.0",
+  "mypy>=1.13.0,<2.0.0"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/indream"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+strict_optional = true
