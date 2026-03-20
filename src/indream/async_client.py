@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 
+from indream.editor_state_validator import validate_editor_state_or_raise
 from indream.errors import APIError, Problem, create_api_error
 from indream.resources.editor import AsyncEditorResource
 
@@ -22,6 +23,7 @@ class AsyncExportsResource:
         payload: dict[str, Any],
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
+        validate_editor_state_or_raise(payload.get("editorState"))
         data = await self._request(
             "POST",
             "/v1/exports",

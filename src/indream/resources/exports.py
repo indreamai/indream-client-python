@@ -4,6 +4,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from indream.editor_state_validator import validate_editor_state_or_raise
 from indream.errors import APIError, Problem
 from indream.types import ExportCreateResponse, ExportTask, ExportTaskListResponse
 
@@ -20,6 +21,7 @@ class ExportsResource:
         payload: dict[str, Any],
         idempotency_key: str | None = None,
     ) -> ExportCreateResponse:
+        validate_editor_state_or_raise(payload.get("editorState"))
         data = self._request(
             "POST",
             "/v1/exports",

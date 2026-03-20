@@ -1,11 +1,13 @@
 import httpx
 
 from indream import IndreamClient
+from indream.errors import ValidationError
+from tests.helpers import build_minimal_editor_state
 
 
 def _create_payload() -> dict[str, object]:
     return {
-        "editorState": {},
+        "editorState": build_minimal_editor_state(),
         "ratio": "16:9",
         "fps": 30,
         "scale": 1,
@@ -68,3 +70,25 @@ def test_exports_create_forwards_idempotency_key_when_provided() -> None:
     client.exports.create(_create_payload(), idempotency_key="idem_1")
 
     assert captured_headers.get("idempotency-key") == "idem_1"
+
+
+def test_exports_create_rejects_invalid_editor_state_before_request() -> None:
+    called = False
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal called
+        called = True
+        return httpx.Response(500, json={})
+
+    client = IndreamClient(api_key="sk_indream_test", transport=httpx.MockTransport(handler))
+    payload = _create_payload()
+    payload["editorState"] = {}
+
+    try:
+        client.exports.create(payload)
+    except ValidationError as error:
+        assert error.error_code == "EDITOR_SCHEMA_INVALID"
+    else:
+        raise AssertionError("expected ValidationError for invalid editorState")
+
+    assert called is False

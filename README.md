@@ -31,3 +31,8 @@ created = client.exports.create(
 task = client.exports.wait(created.task_id)
 print(task.status, task.output_url, task.duration_seconds, task.billed_standard_seconds)
 ```
+
+## Editor State Checks
+
+`client.editor.validate(...)` and `client.exports.create(...)` run local editor-state schema checks before request dispatch.
+If `editorState` is invalid, the SDK raises `ValidationError` immediately.

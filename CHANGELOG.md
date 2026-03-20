@@ -6,20 +6,21 @@ All notable changes to `indream-client` are documented in this file.
 
 ### Highlights
 
-- Added caption animation capability metadata in `GET /v1/editor/capabilities`.
 - Synced the SDK to the latest Indream Editor State OpenAPI contract.
+- Added local `editorState` schema checks before `client.editor.validate(...)` and `client.exports.create(...)`.
+- Added caption animation capability metadata from `GET /v1/editor/capabilities`.
 
 ### Breaking Changes
 
 - `EditorCapabilities` now includes required `captionAnimations` (Python field: `caption_animations`).
-- Editor-state payloads must follow the latest schema shape for animated numeric fields (for example `{ "value": number, "keyframes": [] }` where required).
+- Invalid `editorState` now raises `ValidationError` before network dispatch in `client.editor.validate(...)` and `client.exports.create(...)`.
 - Caption assets now require `timingGranularity` (`word` | `line`).
 
 ### Migration Guide
 
 1. Update capability parsing logic to consume `capabilities.caption_animations.in_`, `out`, and `loop`.
-2. If you construct editor-state JSON manually, migrate numeric geometry/motion fields to the schema-defined animated track shape.
-3. Ensure caption assets include `timingGranularity` before calling `client.editor.validate(...)` or `client.exports.create(...)`.
+2. Ensure your `editorState` payload matches the latest schema before calling `client.editor.validate(...)` or `client.exports.create(...)`.
+3. Ensure caption assets include `timingGranularity` (`word` or `line`).
 
 ### Notes
 

@@ -3,6 +3,7 @@ import pytest
 
 from indream import IndreamClient
 from indream.errors import AuthError, RateLimitError, ValidationError
+from tests.helpers import build_minimal_editor_state
 
 
 @pytest.mark.parametrize(
@@ -33,4 +34,4 @@ def test_error_mapping(status: int, error_cls: type[Exception]) -> None:
     )
 
     with pytest.raises(error_cls):
-        client.editor.validate({})
+        client.editor.validate(build_minimal_editor_state())

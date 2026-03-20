@@ -4,7 +4,8 @@ import httpx
 import pytest
 
 from indream import AsyncIndreamClient
-from indream.errors import APIError
+from indream.errors import APIError, ValidationError
+from tests.helpers import build_minimal_editor_state
 
 
 def test_async_exports_create_without_idempotency_header_by_default() -> None:
@@ -33,7 +34,7 @@ def test_async_exports_create_without_idempotency_header_by_default() -> None:
         )
         try:
             payload = {
-                "editorState": {},
+                "editorState": build_minimal_editor_state(),
                 "ratio": "16:9",
                 "fps": 30,
                 "scale": 1,
@@ -140,3 +141,34 @@ def test_async_exports_list_returns_items_and_next_page_cursor() -> None:
             await client.aclose()
 
     asyncio.run(run())
+
+
+def test_async_exports_create_rejects_invalid_editor_state_before_request() -> None:
+    called = False
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal called
+        called = True
+        return httpx.Response(500, json={})
+
+    async def run() -> None:
+        client = AsyncIndreamClient(
+            api_key="sk_indream_test",
+            transport=httpx.MockTransport(handler),
+        )
+        try:
+            payload = {
+                "editorState": {},
+                "ratio": "16:9",
+                "fps": 30,
+                "scale": 1,
+                "format": "mp4",
+            }
+            with pytest.raises(ValidationError) as error:
+                await client.exports.create(payload)
+            assert error.value.error_code == "EDITOR_SCHEMA_INVALID"
+        finally:
+            await client.aclose()
+
+    asyncio.run(run())
+    assert called is False
