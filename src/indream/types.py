@@ -43,9 +43,23 @@ class ExportWebhookEvent(BaseModel):
     task: ExportTask
 
 
+class CaptionAnimationPresetItem(BaseModel):
+    id: str
+    type: str
+    label: str
+    preview: str
+
+
+class CaptionAnimationPresetGroups(BaseModel):
+    in_: list[CaptionAnimationPresetItem] = Field(alias="in")
+    out: list[CaptionAnimationPresetItem]
+    loop: list[CaptionAnimationPresetItem]
+
+
 class EditorCapabilities(BaseModel):
     version: str
     animations: list[str]
+    caption_animations: CaptionAnimationPresetGroups = Field(alias="captionAnimations")
     transitions: list[str]
     transition_presets: list[dict[str, Any]] = Field(alias="transitionPresets")
     effects: list[str]

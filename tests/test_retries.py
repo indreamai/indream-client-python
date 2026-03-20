@@ -28,6 +28,11 @@ def test_retries_for_429_then_success() -> None:
                 "data": {
                     "version": "2026-02-15",
                     "animations": [],
+                    "captionAnimations": {
+                        "in": [],
+                        "out": [],
+                        "loop": [],
+                    },
                     "transitions": [],
                     "transitionPresets": [],
                     "effects": [],
