@@ -1,8 +1,8 @@
 # indream-client
 
-Official Python client for the Indream Open API.
+Official Python client for the [Indream](https://indream.ai/) Open API.
 
-- API docs: https://docs.indream.ai
+- API docs: [Video Editor API](https://docs.indream.ai)
 - Supports Python 3.10+
 
 ## Installation

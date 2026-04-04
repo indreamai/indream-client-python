@@ -1,27 +1,27 @@
 # Changelog
 
-All notable changes to `indream-client` are documented in this file.
+## 0.2.1 - 2026-04-04
+
+### Added
+
+- Added `projects`, `uploads`, and `assets` resources.
+- Added `uploads.upload(...)` for file uploads.
+- Added nullable `project_id` to export creation responses, export task models, and webhook task payloads.
+
+### Changed
+
+- OpenAPI cloud export formats are limited to `mp4` and `webm`.
+- Export models accept an additional nullable `project_id` field.
 
 ## 0.2.0 - 2026-03-20
 
-### Highlights
+### Added
 
-- Synced the SDK to the latest Indream Editor State OpenAPI contract.
 - Added local `editorState` schema checks before `client.editor.validate(...)` and `client.exports.create(...)`.
 - Added caption animation capability metadata from `GET /v1/editor/capabilities`.
 
-### Breaking Changes
+### Changed
 
-- `EditorCapabilities` now includes required `captionAnimations` (Python field: `caption_animations`).
-- Invalid `editorState` now raises `ValidationError` before network dispatch in `client.editor.validate(...)` and `client.exports.create(...)`.
-- Caption assets now require `timingGranularity` (`word` | `line`).
-
-### Migration Guide
-
-1. Update capability parsing logic to consume `capabilities.caption_animations.in_`, `out`, and `loop`.
-2. Ensure your `editorState` payload matches the latest schema before calling `client.editor.validate(...)` or `client.exports.create(...)`.
-3. Ensure caption assets include `timingGranularity` (`word` or `line`).
-
-### Notes
-
-- OpenAPI files were refreshed from the latest official API spec.
+- `EditorCapabilities` includes required `captionAnimations` (Python field: `caption_animations`).
+- Invalid `editorState` raises `ValidationError` before network dispatch in `client.editor.validate(...)` and `client.exports.create(...)`.
+- Caption assets require `timingGranularity` (`word` | `line`).
