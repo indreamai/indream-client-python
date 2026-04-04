@@ -8,7 +8,10 @@ import httpx
 
 from indream.editor_state_validator import validate_editor_state_or_raise
 from indream.errors import APIError, Problem, create_api_error
+from indream.resources.assets import AsyncAssetsResource
 from indream.resources.editor import AsyncEditorResource
+from indream.resources.projects import AsyncProjectsResource
+from indream.resources.uploads import AsyncUploadsResource
 
 TERMINAL_STATUSES = {"COMPLETED", "FAILED", "CANCELED"}
 
@@ -135,6 +138,9 @@ class AsyncIndreamClient:
 
         self.exports = AsyncExportsResource(self._request, self._poll_interval)
         self.editor = AsyncEditorResource(self._request)
+        self.projects = AsyncProjectsResource(self._request)
+        self.uploads = AsyncUploadsResource(self._request)
+        self.assets = AsyncAssetsResource(self._request)
 
     async def aclose(self) -> None:
         await self._client.aclose()
@@ -145,6 +151,8 @@ class AsyncIndreamClient:
         path: str,
         *,
         json: dict[str, Any] | None = None,
+        content: Any = None,
+        headers: dict[str, str] | None = None,
         idempotency_key: str | None = None,
         skip_retry: bool = False,
         unwrap_data: bool = True,
@@ -153,14 +161,23 @@ class AsyncIndreamClient:
 
         while True:
             try:
-                headers = {
+                request_headers = {
                     "x-api-key": self._api_key,
                     "Accept": "application/json",
+                    **(headers or {}),
                 }
                 if idempotency_key:
-                    headers["Idempotency-Key"] = idempotency_key
+                    request_headers["Idempotency-Key"] = idempotency_key
 
-                response = await self._client.request(method, path, json=json, headers=headers)
+                request_kwargs: dict[str, Any] = {
+                    "headers": request_headers,
+                }
+                if json is not None:
+                    request_kwargs["json"] = json
+                if content is not None:
+                    request_kwargs["content"] = content
+
+                response = await self._client.request(method, path, **request_kwargs)
                 payload = response.json() if response.content else {}
 
                 if response.status_code >= 400:

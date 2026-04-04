@@ -7,8 +7,11 @@ from typing import Any
 import httpx
 
 from indream.errors import APIError, create_api_error
+from indream.resources.assets import AssetsResource
 from indream.resources.editor import EditorResource
 from indream.resources.exports import ExportsResource
+from indream.resources.projects import ProjectsResource
+from indream.resources.uploads import UploadsResource
 
 
 class IndreamClient:
@@ -38,6 +41,9 @@ class IndreamClient:
 
         self.exports = ExportsResource(self._request, self._poll_interval)
         self.editor = EditorResource(self._request)
+        self.projects = ProjectsResource(self._request)
+        self.uploads = UploadsResource(self._request)
+        self.assets = AssetsResource(self._request)
 
     def close(self) -> None:
         self._client.close()
@@ -54,6 +60,8 @@ class IndreamClient:
         path: str,
         *,
         json: dict[str, Any] | None = None,
+        content: Any = None,
+        headers: dict[str, str] | None = None,
         idempotency_key: str | None = None,
         skip_retry: bool = False,
         unwrap_data: bool = True,
@@ -62,14 +70,23 @@ class IndreamClient:
 
         while True:
             try:
-                headers = {
+                request_headers = {
                     "x-api-key": self._api_key,
                     "Accept": "application/json",
+                    **(headers or {}),
                 }
                 if idempotency_key:
-                    headers["Idempotency-Key"] = idempotency_key
+                    request_headers["Idempotency-Key"] = idempotency_key
 
-                response = self._client.request(method, path, json=json, headers=headers)
+                request_kwargs: dict[str, Any] = {
+                    "headers": request_headers,
+                }
+                if json is not None:
+                    request_kwargs["json"] = json
+                if content is not None:
+                    request_kwargs["content"] = content
+
+                response = self._client.request(method, path, **request_kwargs)
                 payload = response.json() if response.content else {}
 
                 if response.status_code >= 400:
