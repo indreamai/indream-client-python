@@ -10,6 +10,7 @@ def test_webhook_payload_accepts_event_envelope() -> None:
         "occurredAt": "2026-03-11T13:00:00.000Z",
         "task": {
             "taskId": "638ad4d9-51e5-42ec-bb50-0db761bba304",
+            "projectId": "93fb8aa8-c301-441d-bb8d-ea733cd72a7e",
             "createdByApiKeyId": "36daa18d-1cfb-4828-bef4-309e27de4235",
             "clientTaskId": "client-1",
             "status": "COMPLETED",
@@ -29,6 +30,7 @@ def test_webhook_payload_accepts_event_envelope() -> None:
 
     assert event.event_type == "EXPORT_COMPLETED"
     assert event.task.task_id == "638ad4d9-51e5-42ec-bb50-0db761bba304"
+    assert event.task.project_id == "93fb8aa8-c301-441d-bb8d-ea733cd72a7e"
     assert event.task.status == "COMPLETED"
     assert event.task.duration_seconds == 18.4
     assert event.task.billed_standard_seconds == 32
@@ -54,6 +56,7 @@ def test_webhook_payload_rejects_lowercase_event_type() -> None:
         "occurredAt": "2026-03-11T13:00:00.000Z",
         "task": {
             "taskId": "f8353d52-c938-4949-a452-376e3d1c92eb",
+            "projectId": None,
             "createdByApiKeyId": None,
             "clientTaskId": None,
             "status": "COMPLETED",
