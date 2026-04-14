@@ -46,7 +46,6 @@ def test_retries_for_429_then_success() -> None:
                         "images": [],
                         "blurLevels": [],
                     },
-                    "illustrations": [],
                 },
                 "meta": {},
             },

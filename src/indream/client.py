@@ -10,6 +10,7 @@ from indream.errors import APIError, create_api_error
 from indream.resources.assets import AssetsResource
 from indream.resources.editor import EditorResource
 from indream.resources.exports import ExportsResource
+from indream.resources.illustrations import IllustrationsResource
 from indream.resources.projects import ProjectsResource
 from indream.resources.uploads import UploadsResource
 
@@ -19,17 +20,17 @@ class IndreamClient:
         self,
         api_key: str,
         *,
-        base_url: str = "https://api.indream.ai",
+        base_url: str = 'https://api.indream.ai',
         timeout: float = 60,
         max_retries: int = 2,
         poll_interval: float = 2,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
         if not api_key:
-            raise ValueError("api_key is required")
+            raise ValueError('api_key is required')
 
         self._api_key = api_key
-        self._base_url = base_url.rstrip("/")
+        self._base_url = base_url.rstrip('/')
         self._timeout = timeout
         self._max_retries = max_retries
         self._poll_interval = poll_interval
@@ -41,6 +42,7 @@ class IndreamClient:
 
         self.exports = ExportsResource(self._request, self._poll_interval)
         self.editor = EditorResource(self._request)
+        self.illustrations = IllustrationsResource(self._request)
         self.projects = ProjectsResource(self._request)
         self.uploads = UploadsResource(self._request)
         self.assets = AssetsResource(self._request)
@@ -71,20 +73,20 @@ class IndreamClient:
         while True:
             try:
                 request_headers = {
-                    "x-api-key": self._api_key,
-                    "Accept": "application/json",
+                    'x-api-key': self._api_key,
+                    'Accept': 'application/json',
                     **(headers or {}),
                 }
                 if idempotency_key:
-                    request_headers["Idempotency-Key"] = idempotency_key
+                    request_headers['Idempotency-Key'] = idempotency_key
 
                 request_kwargs: dict[str, Any] = {
-                    "headers": request_headers,
+                    'headers': request_headers,
                 }
                 if json is not None:
-                    request_kwargs["json"] = json
+                    request_kwargs['json'] = json
                 if content is not None:
-                    request_kwargs["content"] = content
+                    request_kwargs['content'] = content
 
                 response = self._client.request(method, path, **request_kwargs)
                 payload = response.json() if response.content else {}
@@ -92,20 +94,16 @@ class IndreamClient:
                 if response.status_code >= 400:
                     raise create_api_error(response.status_code, payload)
 
-                if not isinstance(payload, dict) or "data" not in payload:
+                if not isinstance(payload, dict) or 'data' not in payload:
                     raise create_api_error(response.status_code, payload)
 
-                if "meta" not in payload:
+                if 'meta' not in payload:
                     raise create_api_error(response.status_code, payload)
 
                 if not unwrap_data:
                     return payload
 
-                data = payload["data"]
-                if not isinstance(data, dict):
-                    raise create_api_error(response.status_code, payload)
-
-                return data
+                return payload['data']
             except APIError as error:
                 if skip_retry:
                     raise
@@ -127,8 +125,7 @@ class IndreamClient:
 
     @staticmethod
     def _sleep_with_backoff(attempt: int) -> None:
-        # Use exponential backoff with jitter to reduce retry bursts
-        # under shared throttling windows.
+        # Use exponential backoff with jitter to avoid synchronized retry spikes.
         base = min(3.0, 0.3 * (2**attempt))
         jitter = random.random() * 0.1
         time.sleep(base + jitter)

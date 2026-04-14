@@ -10,10 +10,11 @@ from indream.editor_state_validator import validate_editor_state_or_raise
 from indream.errors import APIError, Problem, create_api_error
 from indream.resources.assets import AsyncAssetsResource
 from indream.resources.editor import AsyncEditorResource
+from indream.resources.illustrations import AsyncIllustrationsResource
 from indream.resources.projects import AsyncProjectsResource
 from indream.resources.uploads import AsyncUploadsResource
 
-TERMINAL_STATUSES = {"COMPLETED", "FAILED", "CANCELED"}
+TERMINAL_STATUSES = {'COMPLETED', 'FAILED', 'CANCELED'}
 
 
 class AsyncExportsResource:
@@ -26,21 +27,21 @@ class AsyncExportsResource:
         payload: dict[str, Any],
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
-        validate_editor_state_or_raise(payload.get("editorState"))
+        validate_editor_state_or_raise(payload.get('editorState'))
         data = await self._request(
-            "POST",
-            "/v1/exports",
+            'POST',
+            '/v1/exports',
             json=payload,
             idempotency_key=idempotency_key,
         )
         if not isinstance(data, dict):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
         return data
 
     async def get(self, task_id: str) -> dict[str, Any]:
-        data = await self._request("GET", f"/v1/exports/{task_id}")
+        data = await self._request('GET', f'/v1/exports/{task_id}')
         if not isinstance(data, dict):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
         return data
 
     async def list(
@@ -51,33 +52,32 @@ class AsyncExportsResource:
     ) -> dict[str, Any]:
         query: list[str] = []
         if page_size is not None:
-            query.append(f"pageSize={page_size}")
+            query.append(f'pageSize={page_size}')
         if page_cursor is not None:
-            query.append(f"pageCursor={page_cursor}")
+            query.append(f'pageCursor={page_cursor}')
         if created_by_api_key_id is not None:
-            query.append(f"createdByApiKeyId={created_by_api_key_id}")
+            query.append(f'createdByApiKeyId={created_by_api_key_id}')
 
-        suffix = f"?{'&'.join(query)}" if query else ""
-        envelope = await self._request("GET", f"/v1/exports{suffix}", unwrap_data=False)
+        suffix = f"?{'&'.join(query)}" if query else ''
+        envelope = await self._request('GET', f'/v1/exports{suffix}', unwrap_data=False)
 
-        # Keep the response envelope so pagination cursor metadata stays available.
         if not isinstance(envelope, dict):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
 
-        raw_items = envelope.get("data")
+        raw_items = envelope.get('data')
         if not isinstance(raw_items, list):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
 
-        meta = envelope.get("meta")
+        meta = envelope.get('meta')
         if not isinstance(meta, dict):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
 
-        next_page_cursor = meta.get("nextPageCursor")
+        next_page_cursor = meta.get('nextPageCursor')
         if next_page_cursor is not None and not isinstance(next_page_cursor, str):
-            raise TypeError("Unexpected response payload")
+            raise TypeError('Unexpected response payload')
 
         items = [item for item in raw_items if isinstance(item, dict)]
-        return {"items": items, "nextPageCursor": next_page_cursor}
+        return {'items': items, 'nextPageCursor': next_page_cursor}
 
     async def wait(
         self,
@@ -91,19 +91,19 @@ class AsyncExportsResource:
 
         while True:
             if loop.time() - started > timeout:
-                raise TimeoutError(f"wait timeout after {timeout} seconds")
+                raise TimeoutError(f'wait timeout after {timeout} seconds')
 
             task = await self.get(task_id)
-            status = task.get("status")
+            status = task.get('status')
             if status in TERMINAL_STATUSES:
-                if status in {"FAILED", "CANCELED"}:
+                if status in {'FAILED', 'CANCELED'}:
                     raise APIError(
                         Problem(
-                            type="TASK_TERMINAL_FAILURE",
-                            title="Task failed",
+                            type='TASK_TERMINAL_FAILURE',
+                            title='Task failed',
                             status=422,
-                            detail=task.get("error") or f"Task ended with status {status}",
-                            error_code="TASK_TERMINAL_FAILURE",
+                            detail=task.get('error') or f'Task ended with status {status}',
+                            error_code='TASK_TERMINAL_FAILURE',
                         )
                     )
                 return task
@@ -116,17 +116,17 @@ class AsyncIndreamClient:
         self,
         api_key: str,
         *,
-        base_url: str = "https://api.indream.ai",
+        base_url: str = 'https://api.indream.ai',
         timeout: float = 60,
         max_retries: int = 2,
         poll_interval: float = 2,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         if not api_key:
-            raise ValueError("api_key is required")
+            raise ValueError('api_key is required')
 
         self._api_key = api_key
-        self._base_url = base_url.rstrip("/")
+        self._base_url = base_url.rstrip('/')
         self._timeout = timeout
         self._max_retries = max_retries
         self._poll_interval = poll_interval
@@ -138,6 +138,7 @@ class AsyncIndreamClient:
 
         self.exports = AsyncExportsResource(self._request, self._poll_interval)
         self.editor = AsyncEditorResource(self._request)
+        self.illustrations = AsyncIllustrationsResource(self._request)
         self.projects = AsyncProjectsResource(self._request)
         self.uploads = AsyncUploadsResource(self._request)
         self.assets = AsyncAssetsResource(self._request)
@@ -162,20 +163,20 @@ class AsyncIndreamClient:
         while True:
             try:
                 request_headers = {
-                    "x-api-key": self._api_key,
-                    "Accept": "application/json",
+                    'x-api-key': self._api_key,
+                    'Accept': 'application/json',
                     **(headers or {}),
                 }
                 if idempotency_key:
-                    request_headers["Idempotency-Key"] = idempotency_key
+                    request_headers['Idempotency-Key'] = idempotency_key
 
                 request_kwargs: dict[str, Any] = {
-                    "headers": request_headers,
+                    'headers': request_headers,
                 }
                 if json is not None:
-                    request_kwargs["json"] = json
+                    request_kwargs['json'] = json
                 if content is not None:
-                    request_kwargs["content"] = content
+                    request_kwargs['content'] = content
 
                 response = await self._client.request(method, path, **request_kwargs)
                 payload = response.json() if response.content else {}
@@ -183,20 +184,16 @@ class AsyncIndreamClient:
                 if response.status_code >= 400:
                     raise create_api_error(response.status_code, payload)
 
-                if not isinstance(payload, dict) or "data" not in payload:
+                if not isinstance(payload, dict) or 'data' not in payload:
                     raise create_api_error(response.status_code, payload)
 
-                if "meta" not in payload:
+                if 'meta' not in payload:
                     raise create_api_error(response.status_code, payload)
 
                 if not unwrap_data:
                     return payload
 
-                data = payload["data"]
-                if not isinstance(data, dict):
-                    raise create_api_error(response.status_code, payload)
-
-                return data
+                return payload['data']
             except APIError as error:
                 if skip_retry:
                     raise

@@ -70,7 +70,6 @@ class EditorCapabilities(BaseModel):
     filter_presets: list[dict[str, Any]] = Field(alias="filterPresets")
     shapes: list[str]
     background_presets: dict[str, Any] = Field(alias="backgroundPresets")
-    illustrations: list[str]
 
 
 class EditorValidationError(BaseModel):
