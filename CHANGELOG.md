@@ -1,39 +1,16 @@
 # Changelog
 
-## 0.3.1 - 2026-04-10
+## 1.0.0 - 2026-04-15
 
 ### Added
 
-- Added bundled editor state example fixtures for captions, caption offsets, charts, runtime snapshots, deleted assets, and text templates.
-- Added strict `client.editor.validate(...)` example coverage for schema-valid and schema-invalid editor state payloads before request dispatch.
-
-### Changed
-
-- Updated the bundled editor state schema to cover caption offset validation, deleted asset status snapshots, text template node contracts, and expanded chart payload shapes.
-- Python editor validation now ships with the latest OpenAPI example set for caption, chart, runtime, and text template payloads.
-
-## 0.3.0 - 2026-04-04
-
-### Added
-
-- Added `projects`, `uploads`, and `assets` resources.
-- Added `uploads.upload(...)` for file uploads.
-- Added nullable `project_id` to export creation responses, export task models, and webhook task payloads.
-
-### Changed
-
-- OpenAPI cloud export formats are limited to `mp4` and `webm`.
-- Export models accept an additional nullable `project_id` field.
-
-## 0.2.0 - 2026-03-20
-
-### Added
-
-- Added local `editorState` schema checks before `client.editor.validate(...)` and `client.exports.create(...)`.
-- Added caption animation capability metadata from `GET /v1/editor/capabilities`.
-
-### Changed
-
-- `EditorCapabilities` includes required `captionAnimations` (Python field: `caption_animations`).
-- Invalid `editorState` raises `ValidationError` before network dispatch in `client.editor.validate(...)` and `client.exports.create(...)`.
-- Caption assets require `timingGranularity` (`word` | `line`).
+- Initial public release of the Python SDK for Indream OpenAPI.
+- Added typed sync and async clients for `exports`, `editor`, `projects`, `uploads`, `assets`, and `illustrations`.
+- Added support for one-off exports, export task retrieval, export task listing, and polling until completion.
+- Added support for persistent project workflows, including project creation, listing, retrieval, metadata updates, editor-state sync, deletion, asset binding, asset unbinding, and project-based exports.
+- Added direct upload support for image, video, and audio files through `/v1/uploads`, with typed asset models that include the public media fields returned by the API.
+- Added asset retrieval and deletion helpers for uploaded files managed through `/v1/assets`.
+- Added editor capability retrieval, illustration search, and editor-state validation helpers.
+- Added local `editorState` schema validation before `editor.validate(...)`, `projects.create(...)`, `projects.sync(...)`, and `exports.create(...)` requests are sent.
+- Added automatic retry handling for retryable API and transport failures.
+- Added support for Python 3.10+.
